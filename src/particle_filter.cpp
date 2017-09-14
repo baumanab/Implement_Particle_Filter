@@ -121,7 +121,7 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
 	}
 }
 
-void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],std::vector<LandmarkObs> observations, Map map_landmarks) {
+void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],std::vector<LandmarkObs>& observations, Map& map_landmarks) {
 	// TODO: Update the weights of each particle using a mult-variate Gaussian distribution. You can read
     // more about this distribution here: https://en.wikipedia.org/wiki/Multivariate_normal_distribution
     // NOTE: The observations are given in the VEHICLE'S coordinate system. Your particles are located
@@ -170,6 +170,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],st
 		// search for landmarks within sensor range
         for (int k = 0; k < map_landmarks.landmark_list.size(); k++) {
 			double dist_ = dist(particle_x, particle_y, map_landmarks.landmark_list[k].x_f, map_landmarks.landmark_list[k].y_f);
+			
 			if (dist_ < sensor_range) {
 				LandmarkObs detected_landmarks;
 				detected_landmarks.id = map_landmarks.landmark_list[k].id_i;
@@ -187,6 +188,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],st
         // associate map_landmarks id and observations in map coordinates id to be used as foreign key
 
 		dataAssociation(detectable_landmarks, obs_map_coords);
+		
         double updated_weight = 1.0;
         double mu_x, mu_y; // mu is actual landmark location (ground truth)
 		particles[i].weight = 1.0;
@@ -196,7 +198,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],st
 
 			for (int k = 0; k < detectable_landmarks.size(); k++) {
 
-				// find corresponding landmark
+				// find the actual landmark that corresponds to the observation map coords
 				if (obs_map_coords[j].id == detectable_landmarks[k].id) {
 					mu_x = detectable_landmarks[k].x;
 					mu_y = detectable_landmarks[k].y;
@@ -212,8 +214,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],st
 			double y_delta = pow((y_diff)/(2 * sig_y), 2.0);
 
 			double gauss_prob = exp(-(x_delta + y_delta)) * (1/gauss_norm);
-			updated_weight *= gauss_prob;
-			
+			updated_weight *= gauss_prob;			
 
 		}
 
@@ -223,7 +224,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],st
     }
 
 	// normalize weight vector
-	if (total_weight != 0) {
+	if (total_weight != 0) { //let's not divide by 0 :)
 		for (int i = 0; i < weights.size(); i++) {
 			particles[i].weight /= total_weight;
 			weights[i] /= total_weight;
