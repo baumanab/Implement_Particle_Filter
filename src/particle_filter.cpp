@@ -135,13 +135,13 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],st
     // sensor_range, and stdev for the landmark.
     // make conversion, make association using the func above --> mv-gauss
     // mulitply result to get final weight
-    // NOTE:  What do I need: obervations[x, y], particle[x, y, theta]
 	
 	// extract map landmark (x,y) and observations (x,y) and stdev
+	double total_weight = 0.0;
     double sig_x = std_landmark[0];
     double sig_y = std_landmark[1];
 	double gauss_norm = 2 * M_PI * sig_x * sig_y;    
-	double total_weight = 0.0;
+	
 	
     for (int i = 0; i < num_particles; i++) {
 
@@ -184,9 +184,6 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],st
         // associate observation in map coords with closest predicted landmark
         // NOTE: In this function the observations vector is called by reference
         // so this function modifies the original vector, for use in search
-
-        // associate map_landmarks id and observations in map coordinates id to be used as foreign key
-
 		dataAssociation(detectable_landmarks, obs_map_coords);
 		
         double updated_weight = 1.0;
@@ -200,6 +197,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],st
 
 				// find the actual landmark that corresponds to the observation map coords
 				if (obs_map_coords[j].id == detectable_landmarks[k].id) {
+					
 					mu_x = detectable_landmarks[k].x;
 					mu_y = detectable_landmarks[k].y;
 					break;
